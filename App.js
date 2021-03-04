@@ -8,8 +8,8 @@ export default function App() {
   const [location, setLocation]= useState(null);
   const [address, setAddress] = useState(''); 
   const apiKey='V0bFrAggtQNE8XoCG1a5Em0Pse4vfyLk';
-  const [lat, setLat]= useState(63.0);  
-  const [lng, setLng]= useState(23.0);  
+  const [lat, setLat]= useState(0);  
+  const [lng, setLng]= useState(0);  
 
   const getLocation= async ()   => {
     //Checkpermission
@@ -19,33 +19,53 @@ export default function App() {
     }
     else { 
       let location= await Location.getCurrentPositionAsync({});
-    setLocation(location);
-    setLat(Number(location.coords.latitude));
-    setLng(Number(location.coords.longitude));
-    console.log(location.coords.latitude, location.coords.longitude);
-  }
-};
-
- useEffect(() => {
-  getLocation();
-}, []);
-
-
-  const getAddress = async () => {
-    const url = 'http://www.mapquestapi.com/geocoding/v1/address?key='+apiKey+'&location='+lat+','+lng;
-    console.log(url);
+      setLocation(location);
+      setLat(Number(location.coords.latitude));
+      setLng(Number(location.coords.longitude));
+      const url = 'http://www.mapquestapi.com/geocoding/v1/address?key='+apiKey+'&location='+Number(location.coords.latitude)+','+Number(location.coords.longitude);
     try {
       const response = await fetch(url);
       const data = await response.json();
       setAddress(data.results[0].locations[0].street +', '+ data.results[0].locations[0].adminArea5);
+    }
+    catch(error) {
+      Alert.alert('Error' , error);
+    }
+    console.log(address);
+  }
+};
+//const getAddress = async () => {
+ // const url = 'http://www.mapquestapi.com/geocoding/v1/address?key='+apiKey+'&location='+lat+','+lng;
+ // console.log(url);
+//  try {
+  //  const response = await fetch(url);
+    //const data = await response.json();
+//    setAddress(data.results[0].locations[0].street +', '+ data.results[0].locations[0].adminArea5);
+ //   console.log(address);
+//  }
+//  catch(error) {
+//    Alert.alert('Error' , error);}};
+
+ useEffect(() => {
+  getLocation();
+  
+}, []);
+
+
+  const findAddress = async () => {
+    const url = 'http://www.mapquestapi.com/geocoding/v1/address?key='+apiKey+'&location='+address;
+    console.log(url);
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      setLng(Number(data.results[0].locations[0].latLng.lng));
+      setLat(Number(data.results[0].locations[0].latLng.lat));
       console.log(address);
     }
     catch(error) {
       Alert.alert('Error' , error);
     }
   };
-
- 
 
  const map = () => {
   state = { 
@@ -62,8 +82,7 @@ export default function App() {
              <Marker
             coordinate={{
               latitude:lat, 
-              longitude: lng}}
-              title={address}/>
+              longitude: lng}}/>
           </MapView>   
    ) };
 
@@ -73,9 +92,10 @@ export default function App() {
 <TextInput
         style={{fontSize: 14, width: 250, margin:10, borderWidth:1, padding:5}}
         value={address}
-        placeholder="Address will appear here!"
+        placeholder='Address'
+        onChangeText={(address) => setAddress(address)}
       />
-     <Button title="Find" onPress={getAddress}/>
+     <Button title="Find" onPress={findAddress}/>
      <StatusBar style="auto" />
     </View>
   );
